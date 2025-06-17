@@ -297,53 +297,35 @@ with st.sidebar:
     mensaje = "Hola! Quiero hacer el siguiente pedido de mezcal Novena Entrada:\n"
     has_items = False
 
-    # Mostrar mezcales seleccionados
+    # Mostrar resumen solo de lo que ya se seleccionó
     for nombre in mezcales:
         l_key = nombre + "l"
         m_key = nombre + "m"
         l_val = st.session_state.get(l_key, 0)
         m_val = st.session_state.get(m_key, 0)
 
-        # Litro
         if l_val > 0:
             has_items = True
-            col1, col2 = st.columns([4, 1])
-            with col1:
-                subtotal = mezcales[nombre]["litro"] * l_val
-                st.markdown(f"- {l_val}L de {nombre}: ${subtotal:,.0f}")
-            with col2:
-                if st.button("🗑", key=f"del_{l_key}"):
-                    st.session_state[l_key] = 0
+            subtotal = mezcales[nombre]["litro"] * l_val
+            st.markdown(f"- {l_val}L de {nombre}: ${subtotal:,.0f}")
             total += subtotal
             mensaje += f"- {l_val}L de {nombre} (${subtotal})\n"
 
-        # Medio litro
         if m_val > 0:
             has_items = True
-            col1, col2 = st.columns([4, 1])
-            with col1:
-                subtotal = mezcales[nombre]["medio"] * m_val
-                st.markdown(f"- {m_val} x 1/2L de {nombre}: ${subtotal:,.0f}")
-            with col2:
-                if st.button("🗑", key=f"del_{m_key}"):
-                    st.session_state[m_key] = 0
+            subtotal = mezcales[nombre]["medio"] * m_val
+            st.markdown(f"- {m_val} x 1/2L de {nombre}: ${subtotal:,.0f}")
             total += subtotal
             mensaje += f"- {m_val} x 1/2L de {nombre} (${subtotal})\n"
 
-    # Mostrar promociones seleccionadas
     for promo_nombre in promos:
         promo_key = "promo" + promo_nombre
         p_val = st.session_state.get(promo_key, 0)
 
         if p_val > 0:
             has_items = True
-            col1, col2 = st.columns([4, 1])
-            with col1:
-                subtotal = promos[promo_nombre]["precio"] * p_val
-                st.markdown(f"- {p_val} x {promo_nombre}: ${subtotal:,.0f}")
-            with col2:
-                if st.button("🗑", key=f"del_{promo_key}"):
-                    st.session_state[promo_key] = 0
+            subtotal = promos[promo_nombre]["precio"] * p_val
+            st.markdown(f"- {p_val} x {promo_nombre}: ${subtotal:,.0f}")
             total += subtotal
             mensaje += f"- {p_val} x {promo_nombre} (${subtotal})\n"
 
