@@ -105,6 +105,7 @@ img {
 /* Encabezados centrados */
 h2, h3 {
     text-align: center;
+    color: white !important;
 }
 </style>
 """, unsafe_allow_html=True)
