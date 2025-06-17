@@ -168,14 +168,17 @@ col1, col2 = st.columns([5, 2])  # Ajusta proporción a tu gusto
 
 with col1:
     st.markdown(
-        "<h1 class='titulo-principal'>🔥 Mezcal Novena Entrada ⚾</h1>",
+        """
+        <h1 class='titulo-principal'>🔥 Mezcal Novena Entrada ⚾</h1>
+        <p style='color: white; font-size: 1.5rem; margin-top: 10px;'>
+            Haz tu pedido directo por WhatsApp 📱
+        </p>
+        """,
         unsafe_allow_html=True
     )
 
 with col2:
     st.image("logo_mezcal.png", width=300)
-    
-st.subheader("Haz tu pedido directo por WhatsApp 📱")
 
 mezcales = {
     "Espadín": {
