@@ -329,6 +329,81 @@ for desc, precio_total in pedido:
             agregar_al_carrito(producto_key, f"1/2L de {nombre_producto}", precio_unitario, cantidad)
 
 # Calcular total y mostrar en sidebar
+# Inicializar session_state para el carrito
+if 'carrito' not in st.session_state:
+    st.session_state.carrito = {}
+
+# Solo agregar al carrito cuando hay cambios reales en el formulario principal
+# Crear un hash del pedido actual para detectar cambios
+pedido_actual = str(sorted(pedido))
+if 'ultimo_pedido' not in st.session_state:
+    st.session_state.ultimo_pedido = ""
+
+# Solo procesar si hay cambios en el pedido
+if pedido_actual != st.session_state.ultimo_pedido and pedido:
+    # Limpiar carrito antes de agregar nuevos productos
+    st.session_state.carrito = {}
+    
+    # Procesar cada item del pedido
+    for desc, precio_total in pedido:
+        # Extraer información del producto
+        if "x" in desc and "de" in desc:
+            # Formato: "2 x 1/2L de Espadín"
+            partes = desc.split(" x ")
+            cantidad = int(partes[0])
+            resto = partes[1]  # "1/2L de Espadín"
+            
+            if "1/2L" in resto:
+                tipo = "medio"
+                nombre = resto.replace("1/2L de ", "")
+                desc_limpia = f"1/2L de {nombre}"
+            elif "1L" in resto:
+                tipo = "litro"
+                nombre = resto.replace("1L de ", "")
+                desc_limpia = f"1L de {nombre}"
+            else:
+                # Es una promoción
+                tipo = "promo"
+                nombre = resto
+                desc_limpia = nombre
+            
+            precio_unitario = precio_total // cantidad
+            
+        elif "L de" in desc:
+            # Formato: "2L de Espadín"
+            partes = desc.split("L de ")
+            cantidad = int(partes[0])
+            nombre = partes[1]
+            tipo = "litro"
+            desc_limpia = f"1L de {nombre}"
+            precio_unitario = precio_total // cantidad
+            
+        else:
+            # Es una promoción sin formato estándar
+            cantidad = 1
+            tipo = "promo"
+            nombre = desc
+            desc_limpia = desc
+            precio_unitario = precio_total
+        
+        # Crear clave única para el producto
+        producto_key = f"{tipo}_{nombre.replace(' ', '_')}"
+        
+        # Agregar o actualizar en el carrito
+        if producto_key in st.session_state.carrito:
+            st.session_state.carrito[producto_key]['cantidad'] += cantidad
+        else:
+            st.session_state.carrito[producto_key] = {
+                'descripcion': desc_limpia,
+                'precio_unitario': precio_unitario,
+                'cantidad': cantidad,
+                'nombre': nombre
+            }
+    
+    # Actualizar el último pedido procesado
+    st.session_state.ultimo_pedido = pedido_actual
+
+# Sidebar
 with st.sidebar:
     st.markdown(
         "<h2 style='color: #fcad00; text-align: center;'>🧾 Resumen del pedido</h2>",
@@ -340,7 +415,7 @@ with st.sidebar:
         
         st.markdown("### Edita tu pedido aquí:")
         
-        # Crear lista de productos para poder eliminar durante la iteración
+        # Iterar sobre los productos en el carrito
         productos_keys = list(st.session_state.carrito.keys())
         
         for producto_key in productos_keys:
@@ -359,8 +434,9 @@ with st.sidebar:
                 
                 with col1:
                     # Botón para disminuir
-                    if st.button("➖", key=f"menos_{producto_key}"):
-                        if cantidad > 1:
+                    btn_menos = st.button("➖", key=f"menos_{producto_key}")
+                    if btn_menos:
+                        if st.session_state.carrito[producto_key]['cantidad'] > 1:
                             st.session_state.carrito[producto_key]['cantidad'] -= 1
                         else:
                             del st.session_state.carrito[producto_key]
@@ -373,13 +449,15 @@ with st.sidebar:
                 
                 with col3:
                     # Botón para aumentar
-                    if st.button("➕", key=f"mas_{producto_key}"):
+                    btn_mas = st.button("➕", key=f"mas_{producto_key}")
+                    if btn_mas:
                         st.session_state.carrito[producto_key]['cantidad'] += 1
                         st.rerun()
                 
                 with col4:
                     # Botón para eliminar
-                    if st.button("🗑️", key=f"eliminar_{producto_key}"):
+                    btn_eliminar = st.button("🗑️", key=f"eliminar_{producto_key}")
+                    if btn_eliminar:
                         del st.session_state.carrito[producto_key]
                         st.rerun()
                 
@@ -396,52 +474,57 @@ with st.sidebar:
         # Botón para limpiar todo el pedido
         if st.button("🗑️ Limpiar todo el pedido", type="secondary"):
             st.session_state.carrito = {}
+            st.session_state.ultimo_pedido = ""
             st.rerun()
 
         # Mensaje para WhatsApp
-        mensaje = "¡Hola! Quiero hacer el siguiente pedido de mezcal Novena Entrada:\n\n"
-        for producto_key, producto in st.session_state.carrito.items():
-            desc = producto['descripcion']
-            precio_unitario = producto['precio_unitario']
-            cantidad = producto['cantidad']
-            precio_linea = precio_unitario * cantidad
-            mensaje += f"• {cantidad}x {desc} - ${precio_linea:,.0f}\n"
-        mensaje += f"\n🔥 TOTAL: ${total:,.0f}\n\n¡Gracias!"
+        if st.session_state.carrito:
+            mensaje = "¡Hola! Quiero hacer el siguiente pedido de mezcal Novena Entrada:\n\n"
+            for producto_key, producto in st.session_state.carrito.items():
+                desc = producto['descripcion']
+                precio_unitario = producto['precio_unitario']
+                cantidad = producto['cantidad']
+                precio_linea = precio_unitario * cantidad
+                if cantidad > 1:
+                    mensaje += f"• {cantidad}x {desc} - ${precio_linea:,.0f}\n"
+                else:
+                    mensaje += f"• {desc} - ${precio_linea:,.0f}\n"
+            mensaje += f"\n🔥 TOTAL: ${total:,.0f}\n\n¡Gracias!"
 
-        # Enlace de WhatsApp
-        numero_wa = "5573876729"
-        url_wa = f"https://wa.me/{numero_wa}?text={urllib.parse.quote(mensaje)}"
+            # Enlace de WhatsApp
+            numero_wa = "5573876729"
+            url_wa = f"https://wa.me/{numero_wa}?text={urllib.parse.quote(mensaje)}"
 
-        st.markdown(
-            "<hr style='border: 2px solid #fcad00;'>",
-            unsafe_allow_html=True
-        )
-        
-        st.markdown(f"""
-        <div style='text-align: center; margin: 20px 0;'>
-            <a href='{url_wa}' target='_blank' style='
-                background-color: #25D366;
-                color: white;
-                padding: 15px 25px;
-                text-decoration: none;
-                border-radius: 10px;
-                font-weight: bold;
-                font-size: 16px;
-                display: inline-block;
-            '>
-                ✅ Finalizar pedido por WhatsApp
-            </a>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        st.markdown(
-            f"""
-            <div style='text-align: center;'>
-                <img src='data:image/jpeg;base64,{img_data}' width='200' style='border-radius: 10px;'>
+            st.markdown(
+                "<hr style='border: 2px solid #fcad00;'>",
+                unsafe_allow_html=True
+            )
+            
+            st.markdown(f"""
+            <div style='text-align: center; margin: 20px 0;'>
+                <a href='{url_wa}' target='_blank' style='
+                    background-color: #25D366;
+                    color: white;
+                    padding: 15px 25px;
+                    text-decoration: none;
+                    border-radius: 10px;
+                    font-weight: bold;
+                    font-size: 16px;
+                    display: inline-block;
+                '>
+                    ✅ Finalizar pedido por WhatsApp
+                </a>
             </div>
-            """,
-            unsafe_allow_html=True
-        )
+            """, unsafe_allow_html=True)
+            
+            st.markdown(
+                f"""
+                <div style='text-align: center;'>
+                    <img src='data:image/jpeg;base64,{img_data}' width='200' style='border-radius: 10px;'>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
 
     else:
         st.info("🌿 Agrega productos para ver el resumen aquí 👈")
