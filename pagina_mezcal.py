@@ -30,6 +30,7 @@ st.markdown("""
     padding-bottom: 10px;
     border-bottom: 3px solid #fcad00;
     margin-bottom: 30px;
+    color: white;
     text-align: left;
 }
 
@@ -101,7 +102,7 @@ h2, h3 {
     padding: 15px !important;
     border-radius: 10px !important;
     margin: 10px 0 !important;
-    color: black !important;
+    color: white !important;
 }
 
 .mezcal-container * {
