@@ -14,6 +14,12 @@ img_m5 = get_base64_image("mezcal5.jpg")
 st.set_page_config(page_title="Mezcal Novena Entrada ⚾🔥", page_icon="🌿", layout="wide")
 
 st.markdown("""
+<div class="finaliza-sidebar">
+    👈 Finaliza tu pedido aquí
+</div>
+""", unsafe_allow_html=True)
+
+st.markdown("""
 <style>
 
 .titulo-principal {
@@ -25,6 +31,39 @@ st.markdown("""
     border-bottom: 3px solid #fcad00;
     margin-bottom: 30px;
     text-align: left;
+}
+
+/* Resalta el botón de abrir el sidebar */
+button[kind="header"] {
+    background-color: #fcad00 !important;
+    color: black !important;
+    border: 2px solid black !important;
+    font-weight: bold !important;
+    animation: pulse 1.8s infinite;
+    border-radius: 6px !important;
+}
+
+/* Animación para llamar la atención */
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(252, 173, 0, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(252, 173, 0, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(252, 173, 0, 0); }
+}
+
+/* Aviso fijo en pantalla para dirigir al sidebar */
+.finaliza-sidebar {
+    position: fixed;
+    top: 50%;
+    left: 5px;
+    background-color: #fcad00;
+    color: black;
+    font-weight: bold;
+    padding: 10px 15px;
+    border-radius: 8px;
+    transform: rotate(-90deg);
+    transform-origin: left top;
+    z-index: 9999;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.4);
 }
 
 /* Fuente base y ajustes generales */
@@ -270,29 +309,77 @@ with st.sidebar:
         "<h2 class='titulo-principal'>🧾 Resumen del pedido</h2>",
         unsafe_allow_html=True
     )
-    
 
-    if pedido:
-        total = 0
-        for desc, precio in pedido:
-            st.write(f"- {desc}: ${precio:,.0f}")
-            total += precio
-        st.markdown(f"**Total: ${total:,.0f}**")
+    has_items = False
+    total = 0
+    mensaje = "Hola! Quiero hacer el siguiente pedido de mezcal Novena Entrada:\n"
 
-        # Mensaje para WhatsApp
-        mensaje = "Hola! Quiero hacer el siguiente pedido de mezcal Novena Entrada:\n"
-        for desc, precio in pedido:
-            mensaje += f"- {desc} (${precio})\n"
+    # Procesar mezcales
+    for i, nombre in enumerate(mezcales.keys()):
+        l_key = nombre + "l"
+        m_key = nombre + "m"
+
+        l_val = st.session_state.get(l_key, 0)
+        m_val = st.session_state.get(m_key, 0)
+
+        if l_val > 0 or m_val > 0:
+            has_items = True
+            st.markdown(f"**{nombre}**")
+
+        if l_val > 0:
+            st.write(f"1L x {l_val} = ${mezcales[nombre]['litro'] * l_val:,.0f}")
+            col1, col2, col3 = st.columns([1, 1, 1])
+            with col1:
+                if st.button("➖", key=f"menos_{l_key}"):
+                    st.session_state[l_key] = max(0, l_val - 1)
+            with col2:
+                st.write(str(l_val))
+            with col3:
+                if st.button("➕", key=f"mas_{l_key}"):
+                    st.session_state[l_key] = l_val + 1
+            total += mezcales[nombre]["litro"] * l_val
+            mensaje += f"- {l_val}L de {nombre} (${mezcales[nombre]['litro'] * l_val})\n"
+
+        if m_val > 0:
+            st.write(f"1/2L x {m_val} = ${mezcales[nombre]['medio'] * m_val:,.0f}")
+            col1, col2, col3 = st.columns([1, 1, 1])
+            with col1:
+                if st.button("➖", key=f"menos_{m_key}"):
+                    st.session_state[m_key] = max(0, m_val - 1)
+            with col2:
+                st.write(str(m_val))
+            with col3:
+                if st.button("➕", key=f"mas_{m_key}"):
+                    st.session_state[m_key] = m_val + 1
+            total += mezcales[nombre]["medio"] * m_val
+            mensaje += f"- {m_val} x 1/2L de {nombre} (${mezcales[nombre]['medio'] * m_val})\n"
+
+    # Procesar promociones
+    for promo_nombre, promo_info in promos.items():
+        promo_key = "promo" + promo_nombre
+        p_val = st.session_state.get(promo_key, 0)
+        if p_val > 0:
+            has_items = True
+            st.markdown(f"**{promo_nombre}**")
+            st.write(f"{p_val} x ${promo_info['precio']} = ${promo_info['precio'] * p_val:,.0f}")
+            col1, col2, col3 = st.columns([1, 1, 1])
+            with col1:
+                if st.button("➖", key=f"menos_{promo_key}"):
+                    st.session_state[promo_key] = max(0, p_val - 1)
+            with col2:
+                st.write(str(p_val))
+            with col3:
+                if st.button("➕", key=f"mas_{promo_key}"):
+                    st.session_state[promo_key] = p_val + 1
+            total += promo_info["precio"] * p_val
+            mensaje += f"- {p_val} x {promo_nombre} (${promo_info['precio'] * p_val})\n"
+
+    if has_items:
         mensaje += f"\nTotal: ${total:,.0f}"
-
-        # Enlace de WhatsApp
-        numero_wa = "5573876729"  # Sustituye por tu número
+        st.markdown("---")
+        st.markdown(f"**Total: ${total:,.0f}**")
+        numero_wa = "5573876729"
         url_wa = f"https://wa.me/{numero_wa}?text={urllib.parse.quote(mensaje)}"
-
-        st.markdown(
-            "<hr style='border: 1px solid #fcad00;'>",
-            unsafe_allow_html=True
-        )
         st.markdown(f"[✅ Finaliza tu pedido por WhatsApp]({url_wa})", unsafe_allow_html=True)
         st.markdown(
             f"""
@@ -302,6 +389,5 @@ with st.sidebar:
             """,
             unsafe_allow_html=True
         )
-
     else:
         st.info("Agrega productos para ver el resumen aquí 👈")
