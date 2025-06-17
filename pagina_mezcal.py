@@ -15,7 +15,7 @@ st.set_page_config(page_title="Mezcal Novena Entrada ⚾🔥", page_icon="🌿",
 
 st.markdown("""
 <div class="finaliza-sidebar">
-    Finaliza tu pedido aquí☝️ 
+    Finaliza tu pedido aquí 👉 
 </div>
 """, unsafe_allow_html=True)
 
@@ -35,11 +35,11 @@ st.markdown("""
 
 /* Resalta el botón de abrir el sidebar */
 button[kind="header"] {
-    background-color: #fcad00 !important;
-    color: black !important;
+    background-color: #004d01 !important;
+    color: white !important;
     border: 2px solid black !important;
     font-weight: bold !important;
-    animation: pulse 1.8s infinite;
+    animation: pulse 3s infinite;
     border-radius: 6px !important;
 }
 
@@ -53,7 +53,7 @@ button[kind="header"] {
 /* Aviso fijo en pantalla para dirigir al sidebar */
 .finaliza-sidebar {
     position: fixed;
-    top: 50%;
+    top: 20%;
     left: 5px;
     background-color: #fcad00;
     color: black;
@@ -325,23 +325,21 @@ with st.sidebar:
             has_items = True
             st.markdown(f"**{nombre}**")
 
+        # Mostrar/modificar cantidad de litro
         if l_val > 0:
-            st.session_state[l_key] = st.number_input(
-                f"1L de {nombre}", min_value=0, max_value=10, step=1, key=f"sidebar_{l_key}"
+            new_l_val = st.number_input(
+                f"1L de {nombre}", min_value=0, max_value=10, step=1, key=l_key
             )
-            cantidad = st.session_state[l_key]
-            if cantidad > 0:
-                total += mezcales[nombre]["litro"] * cantidad
-                mensaje += f"- {cantidad}L de {nombre} (${mezcales[nombre]['litro'] * cantidad})\n"
+            total += mezcales[nombre]["litro"] * new_l_val
+            mensaje += f"- {new_l_val}L de {nombre} (${mezcales[nombre]['litro'] * new_l_val})\n"
 
+        # Mostrar/modificar cantidad de medio litro
         if m_val > 0:
-            st.session_state[m_key] = st.number_input(
-                f"1/2L de {nombre}", min_value=0, max_value=10, step=1, key=f"sidebar_{m_key}"
+            new_m_val = st.number_input(
+                f"1/2L de {nombre}", min_value=0, max_value=10, step=1, key=m_key
             )
-            cantidad = st.session_state[m_key]
-            if cantidad > 0:
-                total += mezcales[nombre]["medio"] * cantidad
-                mensaje += f"- {cantidad} x 1/2L de {nombre} (${mezcales[nombre]['medio'] * cantidad})\n"
+            total += mezcales[nombre]["medio"] * new_m_val
+            mensaje += f"- {new_m_val} x 1/2L de {nombre} (${mezcales[nombre]['medio'] * new_m_val})\n"
 
     for promo_nombre, promo_info in promos.items():
         promo_key = "promo" + promo_nombre
@@ -350,15 +348,13 @@ with st.sidebar:
         if val > 0:
             has_items = True
             st.markdown(f"**{promo_nombre}**")
-            st.session_state[promo_key] = st.number_input(
-                f"{promo_nombre}", min_value=0, max_value=10, step=1, key=f"sidebar_{promo_key}"
+            new_val = st.number_input(
+                f"{promo_nombre}", min_value=0, max_value=10, step=1, key=promo_key
             )
-            cantidad = st.session_state[promo_key]
-            if cantidad > 0:
-                total += promo_info["precio"] * cantidad
-                mensaje += f"- {cantidad} x {promo_nombre} (${promo_info['precio'] * cantidad})\n"
+            total += promo_info["precio"] * new_val
+            mensaje += f"- {new_val} x {promo_nombre} (${promo_info['precio'] * new_val})\n"
 
-    if has_items:
+    if has_items and total > 0:
         mensaje += f"\nTotal: ${total:,.0f}"
         st.markdown("---")
         st.markdown(f"**Total: ${total:,.0f}**")
