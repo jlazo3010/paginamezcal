@@ -2,6 +2,11 @@ import streamlit as st
 import urllib.parse
 import base64
 
+if 'carrito' not in st.session_state:
+    st.session_state.carrito = {}
+if 'sidebar_interaccion' not in st.session_state:
+    st.session_state.sidebar_interaccion = False
+
 def get_base64_image(image_path):
     with open(image_path, "rb") as img_file:
         encoded = base64.b64encode(img_file.read()).decode()
@@ -168,57 +173,6 @@ mezcales = {
     }
 }
 
-st.markdown("### 🛒 Elige tus mezcales")
-
-st.markdown(
-    "<hr style='border: 1px solid #fcad00;'>",
-    unsafe_allow_html=True
-)
- 
-pedido = []
-
-cols = st.columns(2)
-for i, (nombre, info) in enumerate(mezcales.items()):
-    with cols[i % 2].container():
-        st.markdown('<div class="mezcal-container">', unsafe_allow_html=True)
-        st.markdown(f"#### 🌿 {nombre} 🔥")
-        st.markdown(f"**Descripción:** {info['desc']}")
-        st.markdown(f"**Coctel sugerido:** {info['coctel']}")
-        st.markdown(f"**Maridaje recomendado:** {info['maridaje']}")
-        
-        # Mostrar imagen en un expander
-        with st.expander("Recomendación de coctail 🥃🔥"):
-            img_path = f"{i+1}.png"
-            st.image(img_path, use_container_width=True)
-        
-        litro = st.number_input(f"**Precio 1L:** ${info['litro']:,.0f}", min_value=0, max_value=10, key=nombre + "l")
-        medio = st.number_input(f"**Precio 1/2L:** ${info['medio']:,.0f}", min_value=0, max_value=10, key=nombre + "m")
-        if litro > 0:
-            pedido.append((f"{litro}L de {nombre}", info["litro"] * litro))
-        if medio > 0:
-            pedido.append((f"{medio} x 1/2L de {nombre}", info["medio"] * medio))
-        st.markdown('</div>', unsafe_allow_html=True)
-            
-st.markdown(
-    "<hr style='border: 1px solid #fcad00;'>",
-    unsafe_allow_html=True
-)
-
-st.markdown(
-            f"""
-            <div style='text-align: center;'>
-                <img src='data:image/jpeg;base64,{img_m1}' width='500'>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-            
-st.markdown(
-    "<hr style='border: 1px solid #fcad00;'>",
-    unsafe_allow_html=True
-)
-            
 # Promociones con descripción y ocasión
 promos = {
     "Dúo de la Casa": {
@@ -253,33 +207,73 @@ promos = {
     }
 }
 
-st.markdown("### 🎁 Promociones especiales")
+st.markdown("### 🛒 Elige tus mezcales")
 
-promo_cols = st.columns(2)
-for i, (promo_nombre, promo_info) in enumerate(promos.items()):
-    with promo_cols[i % 2].container():
-        st.markdown('<div class="mezcal-container">', unsafe_allow_html=True)
-        st.markdown(f"#### 🎉 {promo_nombre}: {promo_info['Tipo']}")
-        st.markdown(f"**Precio:** ${promo_info['precio']:,.0f}")
-        st.markdown(f"**Contiene:** {promo_info['desc']}")
-        st.markdown(f"**Ocasión recomendada:** {promo_info['ocasion']}")
-        cantidad = st.number_input(f"Cantidad de '{promo_nombre}'", min_value=0, max_value=10, key="promo" + promo_nombre)
-        if cantidad > 0:
-            pedido.append((f"{cantidad} x {promo_nombre}", promo_info["precio"] * cantidad))
-        st.markdown('</div>', unsafe_allow_html=True)
 st.markdown(
     "<hr style='border: 1px solid #fcad00;'>",
     unsafe_allow_html=True
 )
+ 
+pedido = []
 
-st.markdown(
-            f"""
-            <div style='text-align: center;'>
-                <img src='data:image/jpeg;base64,{img_m5}' width='500'>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+if not st.session_state.sidebar_interaccion:
+    cols = st.columns(2)
+    for i, (nombre, info) in enumerate(mezcales.items()):
+        with cols[i % 2].container():
+            st.markdown('<div class="mezcal-container">', unsafe_allow_html=True)
+            st.markdown(f"#### 🌿 {nombre} 🔥")
+            st.markdown(f"**Descripción:** {info['desc']}")
+            st.markdown(f"**Coctel sugerido:** {info['coctel']}")
+            st.markdown(f"**Maridaje recomendado:** {info['maridaje']}")
+
+            with st.expander("Recomendación de coctail 🥃🔥"):
+                img_path = f"{i+1}.png"
+                st.image(img_path, use_container_width=True)
+
+            litro = st.number_input(f"**Precio 1L:** ${info['litro']:,.0f}", min_value=0, max_value=10, key=nombre + "l")
+            medio = st.number_input(f"**Precio 1/2L:** ${info['medio']:,.0f}", min_value=0, max_value=10, key=nombre + "m")
+
+            if litro > 0:
+                key = f"{nombre}_1L"
+                st.session_state.carrito[key] = {
+                    "descripcion": f"1L de {nombre}",
+                    "precio_unitario": info["litro"],
+                    "cantidad": litro
+                }
+
+            if medio > 0:
+                key = f"{nombre}_0.5L"
+                st.session_state.carrito[key] = {
+                    "descripcion": f"1/2L de {nombre}",
+                    "precio_unitario": info["medio"],
+                    "cantidad": medio
+                }
+
+            st.markdown('</div>', unsafe_allow_html=True)
+
+    st.markdown("<hr style='border: 1px solid #fcad00;'>", unsafe_allow_html=True)
+
+    promo_cols = st.columns(2)
+    for i, (promo_nombre, promo_info) in enumerate(promos.items()):
+        with promo_cols[i % 2].container():
+            st.markdown('<div class="mezcal-container">', unsafe_allow_html=True)
+            st.markdown(f"#### 🎉 {promo_nombre}: {promo_info['Tipo']}")
+            st.markdown(f"**Precio:** ${promo_info['precio']:,.0f}")
+            st.markdown(f"**Contiene:** {promo_info['desc']}")
+            st.markdown(f"**Ocasión recomendada:** {promo_info['ocasion']}")
+            cantidad = st.number_input(f"Cantidad de '{promo_nombre}'", min_value=0, max_value=10, key="promo" + promo_nombre)
+
+            if cantidad > 0:
+                key = f"promo_{promo_nombre}"
+                st.session_state.carrito[key] = {
+                    "descripcion": promo_nombre,
+                    "precio_unitario": promo_info["precio"],
+                    "cantidad": cantidad
+                }
+
+            st.markdown('</div>', unsafe_allow_html=True)
+
+    st.markdown("<hr style='border: 1px solid #fcad00;'>", unsafe_allow_html=True)
 
 st.markdown(
     "<hr style='border: 1px solid #fcad00;'>",
@@ -360,12 +354,9 @@ if productos_formulario:
     for key in keys_a_remover:
         del st.session_state.carrito[key]
 
-# SIDEBAR
+## SIDEBAR
 with st.sidebar:
-    st.markdown(
-        "<h2 style='color: #fcad00; text-align: center;'>🧾 Resumen del pedido</h2>",
-        unsafe_allow_html=True
-    )
+    st.markdown("<h2 style='color: #fcad00; text-align: center;'>🧾 Resumen del pedido</h2>", unsafe_allow_html=True)
 
     if st.session_state.carrito:
         total = 0
@@ -385,6 +376,7 @@ with st.sidebar:
 
                 with col1:
                     if st.button("➖", key=f"menos_{key}"):
+                        st.session_state.sidebar_interaccion = True
                         if st.session_state.carrito[key]['cantidad'] > 1:
                             st.session_state.carrito[key]['cantidad'] -= 1
                         else:
@@ -400,11 +392,13 @@ with st.sidebar:
 
                 with col3:
                     if st.button("➕", key=f"mas_{key}"):
+                        st.session_state.sidebar_interaccion = True
                         st.session_state.carrito[key]['cantidad'] += 1
                         st.rerun()
 
                 with col4:
                     if st.button("🗑️", key=f"del_{key}"):
+                        st.session_state.sidebar_interaccion = True
                         del st.session_state.carrito[key]
                         st.rerun()
 
@@ -416,6 +410,7 @@ with st.sidebar:
         st.markdown(f"### **🔥 Total: ${total:,.0f}**")
 
         if st.button("🗑️ Vaciar carrito", type="secondary"):
+            st.session_state.sidebar_interaccion = True
             st.session_state.carrito = {}
             st.rerun()
 
