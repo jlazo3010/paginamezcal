@@ -111,6 +111,39 @@ h2, h3 {
     text-align: center;
     color: white !important;
 }
+            
+/* Estilo general del expander */
+[data-testid="stExpander"] {
+    background-color: #ffbc00 !important;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    color: black !important;
+    transition: all 0.4s ease-in-out;
+    overflow: hidden;
+}
+
+/* Título del expander */
+[data-testid="stExpander"] > div:first-child {
+    background-color: #ffbc00 !important;
+    color: black !important;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+/* Contenido del expander */
+[data-testid="stExpander"] .streamlit-expanderContent {
+    color: black !important;
+    background-color: #fff3c2 !important;
+    border-top: 1px solid rgba(0,0,0,0.2);
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+/* Animación para el contenido al abrir */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+            
 </style>
 """, unsafe_allow_html=True)
 
