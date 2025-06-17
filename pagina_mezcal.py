@@ -147,7 +147,7 @@ st.markdown(
     "<hr style='border: 1px solid #fcad00;'>",
     unsafe_allow_html=True
 )
-
+ 
 pedido = []
 
 cols = st.columns(2)
