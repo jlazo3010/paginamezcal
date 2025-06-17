@@ -6,6 +6,9 @@ if 'carrito' not in st.session_state:
     st.session_state.carrito = {}
 if 'sidebar_interaccion' not in st.session_state:
     st.session_state.sidebar_interaccion = False
+    
+if 'seccion_actual' not in st.session_state:
+    st.session_state.seccion_actual = "menu_principal"
 
 def get_base64_image(image_path):
     with open(image_path, "rb") as img_file:
@@ -367,102 +370,61 @@ if productos_formulario:
 
 ## SIDEBAR
 with st.sidebar:
-    st.markdown("<h2 style='color: #fcad00; text-align: center;'>🧾 Resumen del pedido</h2>", unsafe_allow_html=True)
-
+    st.markdown("<h2>Resumen del pedido</h2>", unsafe_allow_html=True)
     if st.session_state.carrito:
-        total = 0
-        st.markdown("### Edita tu pedido aquí:")
-
-        productos_a_mostrar = list(st.session_state.carrito.items())
-
-        for key, producto in productos_a_mostrar:
-            desc = producto['descripcion']
-            precio_unitario = producto['precio_unitario']
-            cantidad = producto['cantidad']
-
-            with st.container():
-                st.markdown(f"**{desc}**")
-
-                col1, col2, col3, col4 = st.columns([1, 2, 1, 1])
-
-                with col1:
-                    if st.button("➖", key=f"menos_{key}"):
-                        st.session_state.sidebar_interaccion = True
-                        if st.session_state.carrito[key]['cantidad'] > 1:
-                            st.session_state.carrito[key]['cantidad'] -= 1
-                        else:
-                            del st.session_state.carrito[key]
-                        st.rerun()
-
-                with col2:
-                    st.markdown(
-                        f"<div style='text-align: center; padding: 8px; background-color: #fcad00; "
-                        f"border-radius: 5px; color: black; font-weight: bold;'>{cantidad}</div>",
-                        unsafe_allow_html=True
-                    )
-
-                with col3:
-                    if st.button("➕", key=f"mas_{key}"):
-                        st.session_state.sidebar_interaccion = True
-                        st.session_state.carrito[key]['cantidad'] += 1
-                        st.rerun()
-
-                with col4:
-                    if st.button("🗑️", key=f"del_{key}"):
-                        st.session_state.sidebar_interaccion = True
-                        del st.session_state.carrito[key]
-                        st.rerun()
-
-                precio_linea = precio_unitario * cantidad
-                total += precio_linea
-                st.write(f"💰 ${precio_linea:,.0f}")
-                st.markdown("---")
-
-        st.markdown(f"### **🔥 Total: ${total:,.0f}**")
-
-        if st.button("🗑️ Vaciar carrito", type="secondary"):
-            st.session_state.sidebar_interaccion = True
-            st.session_state.carrito = {}
-            st.rerun()
-
-        if st.session_state.carrito:
-            mensaje = "¡Hola! Pedido de Mezcal Novena Entrada:\n\n"
-            for key, producto in st.session_state.carrito.items():
-                desc = producto['descripcion']
-                cantidad = producto['cantidad']
-                precio_linea = producto['precio_unitario'] * cantidad
-                mensaje += f"• {cantidad}x {desc} - ${precio_linea:,.0f}\n"
-            mensaje += f"\n🔥 TOTAL: ${total:,.0f}\n¡Gracias!"
-
-            numero_wa = "5573876729"
-            url_wa = f"https://wa.me/{numero_wa}?text={urllib.parse.quote(mensaje)}"
-
-            st.markdown("<hr style='border: 2px solid #fcad00;'>", unsafe_allow_html=True)
-
-            st.markdown(f"""
-            <div style='text-align: center; margin: 20px 0;'>
-                <a href='{url_wa}' target='_blank' style='
-                    background-color: #25D366;
-                    color: white;
-                    padding: 15px 25px;
-                    text-decoration: none;
-                    border-radius: 10px;
-                    font-weight: bold;
-                    display: inline-block;
-                '>✅ Finalizar por WhatsApp</a>
-            </div>
-            """, unsafe_allow_html=True)
-
-            st.markdown(f"""
-            <div style='text-align: center;'>
-                <img src='data:image/jpeg;base64,{img_data}' width='200' style='border-radius: 10px;'>
-            </div>
-            """, unsafe_allow_html=True)
-
+        for key, item in st.session_state.carrito.items():
+            st.write(f"{item['descripcion']} x {item['cantidad']} = ${item['precio_unitario'] * item['cantidad']}")
+            if st.button("➖", key=f"menos_{key}"):
+                if item['cantidad'] > 1:
+                    st.session_state.carrito[key]['cantidad'] -= 1
+                else:
+                    del st.session_state.carrito[key]
+                st.experimental_rerun()
+            if st.button("➕", key=f"mas_{key}"):
+                st.session_state.carrito[key]['cantidad'] += 1
+                st.experimental_rerun()
     else:
-        st.info("🌿 Agrega productos para ver el resumen")
-        st.markdown(f"""
-        <div style='text-align: center;'>
-            <img src='data:image/jpeg;base64,{img_data}' width='200' style='border-radius: 10px;'>
-        </div>
-        """, unsafe_allow_html=True)
+        st.write("Agrega productos")
+
+# Menú principal (contenido visible)
+
+if st.session_state.seccion_actual == "menu_principal":
+    pedido = []  # No lo uses para estado, solo temporal si quieres
+    mezcales = {
+        "Espadín": {"desc": "Delicioso mezcal...", "litro": 100, "medio": 60, "coctel": "Mezcal Mule", "maridaje": "Quesos"},
+        "Tobalá": {"desc": "Sabor intenso...", "litro": 150, "medio": 90, "coctel": "Paloma", "maridaje": "Carnes"}
+    }
+
+    cols = st.columns(2)
+    for i, (nombre, info) in enumerate(mezcales.items()):
+        with cols[i % 2]:
+            st.markdown(f"### {nombre}")
+            st.write(info['desc'])
+            key_litro = f"{nombre}_1L"
+            key_medio = f"{nombre}_0.5L"
+
+            # Cantidades iniciales para los inputs basadas en carrito (persistente)
+            cantidad_litro = st.session_state.carrito.get(key_litro, {}).get('cantidad', 0)
+            cantidad_medio = st.session_state.carrito.get(key_medio, {}).get('cantidad', 0)
+
+            litro = st.number_input(f"Litros 1L {nombre}", min_value=0, max_value=10, value=cantidad_litro, key=key_litro+"_input")
+            medio = st.number_input(f"Litros 1/2L {nombre}", min_value=0, max_value=10, value=cantidad_medio, key=key_medio+"_input")
+
+            # Actualizar carrito con la cantidad seleccionada
+            if litro > 0:
+                st.session_state.carrito[key_litro] = {
+                    "descripcion": f"1L de {nombre}",
+                    "precio_unitario": info["litro"],
+                    "cantidad": litro
+                }
+            else:
+                st.session_state.carrito.pop(key_litro, None)
+
+            if medio > 0:
+                st.session_state.carrito[key_medio] = {
+                    "descripcion": f"1/2L de {nombre}",
+                    "precio_unitario": info["medio"],
+                    "cantidad": medio
+                }
+            else:
+                st.session_state.carrito.pop(key_medio, None)
