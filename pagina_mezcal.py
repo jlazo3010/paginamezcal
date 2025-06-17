@@ -36,7 +36,7 @@ st.markdown("""
 /* Aviso fijo en pantalla para dirigir al sidebar */
 .finaliza-sidebar {
     position: fixed;
-    top: 40%;
+    top: 30%;
     left: 5px;
     background-color: #fcad00;
     color: black;
