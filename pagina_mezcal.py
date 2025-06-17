@@ -289,6 +289,7 @@ st.markdown(
 # Calcular total
 # Inicializar session_state para el carrito
 # Inicializar session_state para el carrito si no existe
+# Inicializar session_state para el carrito si no existe
 if 'carrito' not in st.session_state:
     st.session_state.carrito = {}
 
