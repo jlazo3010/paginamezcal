@@ -31,7 +31,7 @@ st.markdown("""
     padding-bottom: 10px;
     border-bottom: 3px solid white;
     margin-bottom: 30px;
-    text-align: left;
+    text-align: centered;
 }
 
 /* Texto blanco en el contenido principal */
@@ -54,6 +54,13 @@ html, body, .main, .block-container {
     color: white !important;
 }
 
+.block-container {
+    margin: auto !important;
+    padding-top: 4rem;
+    padding-left: 5rem;
+    padding-right: 5rem;
+}            
+            
 /* Texto negro en elementos específicos dentro de contenedores de mezcal */
 .mezcal-container * {
     color: black !important;
