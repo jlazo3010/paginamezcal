@@ -291,57 +291,53 @@ st.markdown(
 if 'carrito' not in st.session_state:
     st.session_state.carrito = {}
 
-# Solo actualizar el carrito desde el formulario si no hay interacción con botones del sidebar
-sidebar_action = any([
-    f"menos_{key}" in st.session_state for key in st.session_state.get('carrito', {}).keys()
-]) or any([
-    f"mas_{key}" in st.session_state for key in st.session_state.get('carrito', {}).keys()
-]) or any([
-    f"del_{key}" in st.session_state for key in st.session_state.get('carrito', {}).keys()
-])
+# Inicializar flag para controlar actualizaciones
+if 'sidebar_clicked' not in st.session_state:
+    st.session_state.sidebar_clicked = False
 
-if not sidebar_action:
-    # Crear un diccionario temporal con los productos actuales del formulario
-    productos_formulario = {}
-    for desc, precio_total in pedido:
-        # Parse del producto según su formato
-        if " x " in desc and "de" in desc:
-            # Formato: "2 x 1/2L de Espadín"
-            cantidad = int(desc.split(" x ")[0])
-            resto = desc.split(" x ")[1]
-            if "1/2L de" in resto:
-                nombre = resto.replace("1/2L de ", "")
-                key = f"medio_{nombre}"
-                desc_clean = f"1/2L de {nombre}"
-            elif "1L de" in resto:
-                nombre = resto.replace("1L de ", "")
-                key = f"litro_{nombre}"
-                desc_clean = f"1L de {nombre}"
-            precio_unit = precio_total // cantidad
-        elif "L de" in desc:
-            # Formato: "3L de Espadín"
-            cantidad = int(desc.split("L de")[0])
-            nombre = desc.split("L de")[1].strip()
+# Crear un diccionario temporal con los productos actuales del formulario
+productos_formulario = {}
+for desc, precio_total in pedido:
+    # Parse del producto según su formato
+    if " x " in desc and "de" in desc:
+        # Formato: "2 x 1/2L de Espadín"
+        cantidad = int(desc.split(" x ")[0])
+        resto = desc.split(" x ")[1]
+        if "1/2L de" in resto:
+            nombre = resto.replace("1/2L de ", "")
+            key = f"medio_{nombre}"
+            desc_clean = f"1/2L de {nombre}"
+        elif "1L de" in resto:
+            nombre = resto.replace("1L de ", "")
             key = f"litro_{nombre}"
             desc_clean = f"1L de {nombre}"
-            precio_unit = precio_total // cantidad
-        else:
-            # Promociones
-            cantidad = 1
-            nombre = desc
-            key = f"promo_{desc.replace(' ', '_')}"
-            desc_clean = desc
-            precio_unit = precio_total
-        
-        if key in productos_formulario:
-            productos_formulario[key]['cantidad'] += cantidad
-        else:
-            productos_formulario[key] = {
-                'descripcion': desc_clean,
-                'precio_unitario': precio_unit,
-                'cantidad': cantidad
-            }
+        precio_unit = precio_total // cantidad
+    elif "L de" in desc:
+        # Formato: "3L de Espadín"
+        cantidad = int(desc.split("L de")[0])
+        nombre = desc.split("L de")[1].strip()
+        key = f"litro_{nombre}"
+        desc_clean = f"1L de {nombre}"
+        precio_unit = precio_total // cantidad
+    else:
+        # Promociones
+        cantidad = 1
+        nombre = desc
+        key = f"promo_{desc.replace(' ', '_')}"
+        desc_clean = desc
+        precio_unit = precio_total
+    
+    if key in productos_formulario:
+        productos_formulario[key]['cantidad'] += cantidad
+    else:
+        productos_formulario[key] = {
+            'descripcion': desc_clean,
+            'precio_unitario': precio_unit,
+            'cantidad': cantidad
+        }
 
+# Actualizar carrito desde el formulario (siempre que no sea una acción específica del sidebar)
+if not st.session_state.sidebar_clicked:
     # Actualizar carrito solo con productos que tienen cantidad > 0 en el formulario
     for key, producto in productos_formulario.items():
         if producto['cantidad'] > 0:
@@ -354,6 +350,9 @@ if not sidebar_action:
             keys_a_remover.append(key)
     for key in keys_a_remover:
         del st.session_state.carrito[key]
+
+# Reset del flag después de procesar
+st.session_state.sidebar_clicked = False
 
 # SIDEBAR
 with st.sidebar:
@@ -382,6 +381,7 @@ with st.sidebar:
                 with col1:
                     # Botón disminuir
                     if st.button("➖", key=f"menos_{key}"):
+                        st.session_state.sidebar_clicked = True
                         if st.session_state.carrito[key]['cantidad'] > 1:
                             st.session_state.carrito[key]['cantidad'] -= 1
                         else:
@@ -399,12 +399,14 @@ with st.sidebar:
                 with col3:
                     # Botón aumentar
                     if st.button("➕", key=f"mas_{key}"):
+                        st.session_state.sidebar_clicked = True
                         st.session_state.carrito[key]['cantidad'] += 1
                         st.rerun()
                 
                 with col4:
                     # Botón eliminar
                     if st.button("🗑️", key=f"del_{key}"):
+                        st.session_state.sidebar_clicked = True
                         del st.session_state.carrito[key]
                         st.rerun()
                 
@@ -419,6 +421,7 @@ with st.sidebar:
         
         # Limpiar todo
         if st.button("🗑️ Vaciar carrito", type="secondary"):
+            st.session_state.sidebar_clicked = True
             st.session_state.carrito = {}
             st.rerun()
         
