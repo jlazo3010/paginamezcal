@@ -91,7 +91,7 @@ img {
     color: white !important;
 }
 
-/* Encabezados centrados */
+/* Encabezados centrados */ 
 h2, h3 {
     text-align: center;
 }
