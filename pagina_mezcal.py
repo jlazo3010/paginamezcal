@@ -288,122 +288,65 @@ st.markdown(
 
 # Calcular total
 # Inicializar session_state para el carrito
+# Inicializar session_state para el carrito si no existe
 if 'carrito' not in st.session_state:
     st.session_state.carrito = {}
 
-# Función para agregar al carrito
-def agregar_al_carrito(producto_key, descripcion, precio_unitario, cantidad):
-    if cantidad > 0:
-        if producto_key in st.session_state.carrito:
-            st.session_state.carrito[producto_key]['cantidad'] += cantidad
-        else:
-            st.session_state.carrito[producto_key] = {
-                'descripcion': descripcion,
-                'precio_unitario': precio_unitario,
-                'cantidad': cantidad
-            }
-
-# Procesar pedidos del formulario principal y agregar al carrito
+# Crear un diccionario temporal con los productos actuales del formulario
+productos_formulario = {}
 for desc, precio_total in pedido:
-    # Extraer información del producto para crear una clave única
-    if "x" in desc:
-        # Es una promoción
-        cantidad = int(desc.split("x")[0].strip())
-        nombre_producto = desc.split("x")[1].strip()
-        precio_unitario = precio_total // cantidad
-        producto_key = f"promo_{nombre_producto}"
-        agregar_al_carrito(producto_key, nombre_producto, precio_unitario, cantidad)
+    # Parse del producto según su formato
+    if " x " in desc and "de" in desc:
+        # Formato: "2 x 1/2L de Espadín"
+        cantidad = int(desc.split(" x ")[0])
+        resto = desc.split(" x ")[1]
+        if "1/2L de" in resto:
+            nombre = resto.replace("1/2L de ", "")
+            key = f"medio_{nombre}"
+            desc_clean = f"1/2L de {nombre}"
+        elif "1L de" in resto:
+            nombre = resto.replace("1L de ", "")
+            key = f"litro_{nombre}"
+            desc_clean = f"1L de {nombre}"
+        precio_unit = precio_total // cantidad
+    elif "L de" in desc:
+        # Formato: "3L de Espadín"
+        cantidad = int(desc.split("L de")[0])
+        nombre = desc.split("L de")[1].strip()
+        key = f"litro_{nombre}"
+        desc_clean = f"1L de {nombre}"
+        precio_unit = precio_total // cantidad
     else:
-        # Es un mezcal individual
-        if "1L" in desc:
-            cantidad = int(desc.split("L")[0])
-            nombre_producto = desc.split(" de ")[1]
-            precio_unitario = precio_total // cantidad
-            producto_key = f"litro_{nombre_producto}"
-            agregar_al_carrito(producto_key, f"1L de {nombre_producto}", precio_unitario, cantidad)
-        elif "1/2L" in desc:
-            cantidad = int(desc.split(" x ")[0])
-            nombre_producto = desc.split(" de ")[1]
-            precio_unitario = precio_total // cantidad
-            producto_key = f"medio_{nombre_producto}"
-            agregar_al_carrito(producto_key, f"1/2L de {nombre_producto}", precio_unitario, cantidad)
-
-# Calcular total y mostrar en sidebar
-# Inicializar session_state para el carrito
-if 'carrito' not in st.session_state:
-    st.session_state.carrito = {}
-
-# Solo agregar al carrito cuando hay cambios reales en el formulario principal
-# Crear un hash del pedido actual para detectar cambios
-pedido_actual = str(sorted(pedido))
-if 'ultimo_pedido' not in st.session_state:
-    st.session_state.ultimo_pedido = ""
-
-# Solo procesar si hay cambios en el pedido
-if pedido_actual != st.session_state.ultimo_pedido and pedido:
-    # Limpiar carrito antes de agregar nuevos productos
-    st.session_state.carrito = {}
+        # Promociones
+        cantidad = 1
+        nombre = desc
+        key = f"promo_{desc.replace(' ', '_')}"
+        desc_clean = desc
+        precio_unit = precio_total
     
-    # Procesar cada item del pedido
-    for desc, precio_total in pedido:
-        # Extraer información del producto
-        if "x" in desc and "de" in desc:
-            # Formato: "2 x 1/2L de Espadín"
-            partes = desc.split(" x ")
-            cantidad = int(partes[0])
-            resto = partes[1]  # "1/2L de Espadín"
-            
-            if "1/2L" in resto:
-                tipo = "medio"
-                nombre = resto.replace("1/2L de ", "")
-                desc_limpia = f"1/2L de {nombre}"
-            elif "1L" in resto:
-                tipo = "litro"
-                nombre = resto.replace("1L de ", "")
-                desc_limpia = f"1L de {nombre}"
-            else:
-                # Es una promoción
-                tipo = "promo"
-                nombre = resto
-                desc_limpia = nombre
-            
-            precio_unitario = precio_total // cantidad
-            
-        elif "L de" in desc:
-            # Formato: "2L de Espadín"
-            partes = desc.split("L de ")
-            cantidad = int(partes[0])
-            nombre = partes[1]
-            tipo = "litro"
-            desc_limpia = f"1L de {nombre}"
-            precio_unitario = precio_total // cantidad
-            
-        else:
-            # Es una promoción sin formato estándar
-            cantidad = 1
-            tipo = "promo"
-            nombre = desc
-            desc_limpia = desc
-            precio_unitario = precio_total
-        
-        # Crear clave única para el producto
-        producto_key = f"{tipo}_{nombre.replace(' ', '_')}"
-        
-        # Agregar o actualizar en el carrito
-        if producto_key in st.session_state.carrito:
-            st.session_state.carrito[producto_key]['cantidad'] += cantidad
-        else:
-            st.session_state.carrito[producto_key] = {
-                'descripcion': desc_limpia,
-                'precio_unitario': precio_unitario,
-                'cantidad': cantidad,
-                'nombre': nombre
-            }
-    
-    # Actualizar el último pedido procesado
-    st.session_state.ultimo_pedido = pedido_actual
+    if key in productos_formulario:
+        productos_formulario[key]['cantidad'] += cantidad
+    else:
+        productos_formulario[key] = {
+            'descripcion': desc_clean,
+            'precio_unitario': precio_unit,
+            'cantidad': cantidad
+        }
 
-# Sidebar
+# Actualizar carrito solo con productos que tienen cantidad > 0 en el formulario
+for key, producto in productos_formulario.items():
+    if producto['cantidad'] > 0:
+        st.session_state.carrito[key] = producto
+
+# Remover del carrito productos que ya no están en el formulario
+keys_a_remover = []
+for key in st.session_state.carrito.keys():
+    if key not in productos_formulario:
+        keys_a_remover.append(key)
+for key in keys_a_remover:
+    del st.session_state.carrito[key]
+
+# SIDEBAR
 with st.sidebar:
     st.markdown(
         "<h2 style='color: #fcad00; text-align: center;'>🧾 Resumen del pedido</h2>",
@@ -412,17 +355,12 @@ with st.sidebar:
     
     if st.session_state.carrito:
         total = 0
-        
         st.markdown("### Edita tu pedido aquí:")
         
-        # Iterar sobre los productos en el carrito
-        productos_keys = list(st.session_state.carrito.keys())
+        # Crear lista de productos para evitar problemas de iteración
+        productos_items = list(st.session_state.carrito.items())
         
-        for producto_key in productos_keys:
-            if producto_key not in st.session_state.carrito:
-                continue
-                
-            producto = st.session_state.carrito[producto_key]
+        for key, producto in productos_items:
             desc = producto['descripcion']
             precio_unitario = producto['precio_unitario']
             cantidad = producto['cantidad']
@@ -433,72 +371,62 @@ with st.sidebar:
                 col1, col2, col3, col4 = st.columns([1, 2, 1, 1])
                 
                 with col1:
-                    # Botón para disminuir
-                    btn_menos = st.button("➖", key=f"menos_{producto_key}")
-                    if btn_menos:
-                        if st.session_state.carrito[producto_key]['cantidad'] > 1:
-                            st.session_state.carrito[producto_key]['cantidad'] -= 1
+                    # Botón disminuir
+                    if st.button("➖", key=f"menos_{key}"):
+                        if st.session_state.carrito[key]['cantidad'] > 1:
+                            st.session_state.carrito[key]['cantidad'] -= 1
                         else:
-                            del st.session_state.carrito[producto_key]
+                            del st.session_state.carrito[key]
                         st.rerun()
                 
                 with col2:
-                    # Mostrar cantidad actual
-                    st.markdown(f"<div style='text-align: center; padding: 8px; background-color: #fcad00; border-radius: 5px; color: black; font-weight: bold;'>{cantidad}</div>", 
-                              unsafe_allow_html=True)
+                    # Mostrar cantidad
+                    st.markdown(
+                        f"<div style='text-align: center; padding: 8px; background-color: #fcad00; "
+                        f"border-radius: 5px; color: black; font-weight: bold;'>{cantidad}</div>", 
+                        unsafe_allow_html=True
+                    )
                 
                 with col3:
-                    # Botón para aumentar
-                    btn_mas = st.button("➕", key=f"mas_{producto_key}")
-                    if btn_mas:
-                        st.session_state.carrito[producto_key]['cantidad'] += 1
+                    # Botón aumentar
+                    if st.button("➕", key=f"mas_{key}"):
+                        st.session_state.carrito[key]['cantidad'] += 1
                         st.rerun()
                 
                 with col4:
-                    # Botón para eliminar
-                    btn_eliminar = st.button("🗑️", key=f"eliminar_{producto_key}")
-                    if btn_eliminar:
-                        del st.session_state.carrito[producto_key]
+                    # Botón eliminar
+                    if st.button("🗑️", key=f"del_{key}"):
+                        del st.session_state.carrito[key]
                         st.rerun()
                 
-                # Calcular precio para esta línea
+                # Calcular subtotal
                 precio_linea = precio_unitario * cantidad
                 total += precio_linea
-                
-                st.write(f"💰 Subtotal: ${precio_linea:,.0f}")
+                st.write(f"💰 ${precio_linea:,.0f}")
                 st.markdown("---")
         
-        # Mostrar total
-        st.markdown(f"### **🔥 Total: ${total:,.0f} 🔥**")
+        # Total
+        st.markdown(f"### **🔥 Total: ${total:,.0f}**")
         
-        # Botón para limpiar todo el pedido
-        if st.button("🗑️ Limpiar todo el pedido", type="secondary"):
+        # Limpiar todo
+        if st.button("🗑️ Vaciar carrito", type="secondary"):
             st.session_state.carrito = {}
-            st.session_state.ultimo_pedido = ""
             st.rerun()
-
-        # Mensaje para WhatsApp
+        
+        # WhatsApp
         if st.session_state.carrito:
-            mensaje = "¡Hola! Quiero hacer el siguiente pedido de mezcal Novena Entrada:\n\n"
-            for producto_key, producto in st.session_state.carrito.items():
+            mensaje = "¡Hola! Pedido de Mezcal Novena Entrada:\n\n"
+            for key, producto in st.session_state.carrito.items():
                 desc = producto['descripcion']
-                precio_unitario = producto['precio_unitario']
                 cantidad = producto['cantidad']
-                precio_linea = precio_unitario * cantidad
-                if cantidad > 1:
-                    mensaje += f"• {cantidad}x {desc} - ${precio_linea:,.0f}\n"
-                else:
-                    mensaje += f"• {desc} - ${precio_linea:,.0f}\n"
-            mensaje += f"\n🔥 TOTAL: ${total:,.0f}\n\n¡Gracias!"
-
-            # Enlace de WhatsApp
+                precio_linea = producto['precio_unitario'] * cantidad
+                mensaje += f"• {cantidad}x {desc} - ${precio_linea:,.0f}\n"
+            mensaje += f"\n🔥 TOTAL: ${total:,.0f}\n¡Gracias!"
+            
             numero_wa = "5573876729"
             url_wa = f"https://wa.me/{numero_wa}?text={urllib.parse.quote(mensaje)}"
-
-            st.markdown(
-                "<hr style='border: 2px solid #fcad00;'>",
-                unsafe_allow_html=True
-            )
+            
+            st.markdown("<hr style='border: 2px solid #fcad00;'>", unsafe_allow_html=True)
             
             st.markdown(f"""
             <div style='text-align: center; margin: 20px 0;'>
@@ -509,30 +437,21 @@ with st.sidebar:
                     text-decoration: none;
                     border-radius: 10px;
                     font-weight: bold;
-                    font-size: 16px;
                     display: inline-block;
-                '>
-                    ✅ Finalizar pedido por WhatsApp
-                </a>
+                '>✅ Finalizar por WhatsApp</a>
             </div>
             """, unsafe_allow_html=True)
             
-            st.markdown(
-                f"""
-                <div style='text-align: center;'>
-                    <img src='data:image/jpeg;base64,{img_data}' width='200' style='border-radius: 10px;'>
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
-
-    else:
-        st.info("🌿 Agrega productos para ver el resumen aquí 👈")
-        st.markdown(
-            f"""
+            st.markdown(f"""
             <div style='text-align: center;'>
                 <img src='data:image/jpeg;base64,{img_data}' width='200' style='border-radius: 10px;'>
             </div>
-            """,
-            unsafe_allow_html=True
-        )
+            """, unsafe_allow_html=True)
+    
+    else:
+        st.info("🌿 Agrega productos para ver el resumen")
+        st.markdown(f"""
+        <div style='text-align: center;'>
+            <img src='data:image/jpeg;base64,{img_data}' width='200' style='border-radius: 10px;'>
+        </div>
+        """, unsafe_allow_html=True)
