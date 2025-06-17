@@ -38,8 +38,8 @@ st.markdown("""
     position: fixed;
     top: 30%;
     left: 5px;
-    background-color: #fcad00;
-    color: black;
+    background-color: #004d01;
+    color: white;
     font-weight: bold;
     padding: 10px 15px;
     border-radius: 8px;
