@@ -22,16 +22,41 @@ st.markdown("""
 st.markdown("""
 <style>
 
+/* Título principal en blanco */
 .titulo-principal {
     font-size: 10rem;
-    color: #fcad00;
+    color: white !important;
     text-shadow: 2px 2px 7px rgba(0,0,0,1);
     font-weight: bold;
     padding-bottom: 10px;
-    border-bottom: 3px solid #fcad00;
+    border-bottom: 3px solid white;
     margin-bottom: 30px;
-    color: white;
     text-align: left;
+}
+
+/* Texto blanco en el contenido principal */
+html, body, .main, .block-container {
+    font-family: 'Segoe UI', sans-serif;
+    background-color: #871000 !important;
+    color: white !important;
+    padding: 0;
+    margin: 70px;
+    overflow-x: hidden !important;
+    box-sizing: border-box;
+}
+
+/* Estilo para contenedores de mezcales */
+.mezcal-container {
+    background-color: #ffbc00 !important;
+    padding: 15px !important;
+    border-radius: 10px !important;
+    margin: 10px 0 !important;
+    color: white !important;
+}
+
+/* Texto negro en elementos específicos dentro de contenedores de mezcal */
+.mezcal-container * {
+    color: black !important;
 }
 
 /* Aviso fijo en pantalla para dirigir al sidebar */
@@ -50,22 +75,14 @@ st.markdown("""
     box-shadow: 0 4px 10px rgba(0,0,0,0.4);
 }
 
-/* Fuente base y ajustes generales */
-html, body, .main, .block-container {
-    font-family: 'Segoe UI', sans-serif;
-    background-color: #871000 !important;
-    padding: 0;
-    margin: 70px;
-    overflow-x: hidden !important;
-    box-sizing: border-box;
+/* Sidebar: fondo verde oscuro */
+[data-testid="stSidebar"] {
+    background-color: #105500;
 }
 
-/* Limitar ancho y centrar contenido */
-.block-container {
-    margin: auto !important;
-    padding-top: 4rem;
-    padding-left: 5rem;
-    padding-right: 5rem;
+/* Texto blanco en el sidebar */
+[data-testid="stSidebar"] * {
+    color: white !important;
 }
 
 /* Centrar imágenes */
@@ -74,39 +91,13 @@ img {
     margin-left: auto;
     margin-right: auto;
     max-width: 100%;
-}
-
-/* Sidebar: fondo verde oscuro */
-[data-testid="stSidebar"] {
-    background-color: #105500;
-}
-
-img {
     border-radius: 12px;
     box-shadow: 0 4px 10px rgba(0,0,0,0.3);
 }
 
-/* Texto blanco en el sidebar */
-[data-testid="stSidebar"] * {
-    color: white !important;
-}
-
-/* Encabezados centrados */ 
+/* Encabezados centrados */
 h2, h3 {
     text-align: center;
-}
-
-/* Estilo para contenedores de mezcales */
-.mezcal-container {
-    background-color: #ffbc00 !important;
-    padding: 15px !important;
-    border-radius: 10px !important;
-    margin: 10px 0 !important;
-    color: white !important;
-}
-
-.mezcal-container * {
-    color: black !important;
 }
 </style>
 """, unsafe_allow_html=True)
