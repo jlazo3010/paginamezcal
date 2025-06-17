@@ -58,6 +58,11 @@ img {
     background-color: #105500;
 }
 
+img {
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
 /* Texto blanco en el sidebar */
 [data-testid="stSidebar"] * {
     color: white !important;
@@ -158,6 +163,12 @@ for i, (nombre, info) in enumerate(mezcales.items()):
         st.markdown(f"**Descripción:** {info['desc']}")
         st.markdown(f"**Coctel sugerido:** {info['coctel']}")
         st.markdown(f"**Maridaje recomendado:** {info['maridaje']}")
+        
+        # Mostrar imagen en un expander
+        with st.expander("📸 Ver imagen del mezcal"):
+            img_path = f"{i+1}.png"
+            st.image(img_path, use_column_width=True)
+        
         litro = st.number_input(f"**Precio 1L:** ${info['litro']:,.0f}", min_value=0, max_value=10, key=nombre + "l")
         medio = st.number_input(f"**Precio 1/2L:** ${info['medio']:,.0f}", min_value=0, max_value=10, key=nombre + "m")
         if litro > 0:
