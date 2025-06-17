@@ -314,7 +314,6 @@ with st.sidebar:
             with col2:
                 if st.button("🗑", key=f"del_{l_key}"):
                     st.session_state[l_key] = 0
-                    st.rerun()
             total += subtotal
             mensaje += f"- {l_val}L de {nombre} (${subtotal})\n"
 
@@ -328,7 +327,6 @@ with st.sidebar:
             with col2:
                 if st.button("🗑", key=f"del_{m_key}"):
                     st.session_state[m_key] = 0
-                    st.rerun()
             total += subtotal
             mensaje += f"- {m_val} x 1/2L de {nombre} (${subtotal})\n"
 
@@ -346,7 +344,6 @@ with st.sidebar:
             with col2:
                 if st.button("🗑", key=f"del_{promo_key}"):
                     st.session_state[promo_key] = 0
-                    st.rerun()
             total += subtotal
             mensaje += f"- {p_val} x {promo_nombre} (${subtotal})\n"
 
