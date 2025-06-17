@@ -122,6 +122,17 @@ h2, h3 {
     overflow: hidden;
 }
 
+/* Estilo general del expander */
+[data-testid="stExpander"] {
+    background-color: #ffbc00 !important;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(255, 188, 0, 0.4);
+    color: black !important;
+    animation: glow 2s infinite ease-in-out;
+    transition: all 0.4s ease-in-out;
+    overflow: hidden;
+}
+
 /* Título del expander */
 [data-testid="stExpander"] > div:first-child {
     background-color: #ffbc00 !important;
@@ -135,15 +146,20 @@ h2, h3 {
     color: black !important;
     background-color: #fff3c2 !important;
     border-top: 1px solid rgba(0,0,0,0.2);
-    animation: fadeIn 0.5s ease-in-out;
 }
 
-/* Animación para el contenido al abrir */
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-            
+/* Animación de "glow" */
+@keyframes glow {
+    0% {
+        box-shadow: 0 0 10px rgba(255, 188, 0, 0.3);
+    }
+    50% {
+        box-shadow: 0 0 25px rgba(255, 188, 0, 0.8);
+    }
+    100% {
+        box-shadow: 0 0 10px rgba(255, 188, 0, 0.3);
+    }
+}         
 </style>
 """, unsafe_allow_html=True)
 
