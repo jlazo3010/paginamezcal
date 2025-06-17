@@ -230,29 +230,41 @@ if not st.session_state.sidebar_interaccion:
                 img_path = f"{i+1}.png"
                 st.image(img_path, use_container_width=True)
 
-            litro = st.number_input(f"**Precio 1L:** ${info['litro']:,.0f}", min_value=0, max_value=10, key=nombre + "l")
-            medio = st.number_input(f"**Precio 1/2L:** ${info['medio']:,.0f}", min_value=0, max_value=10, key=nombre + "m")
+            # Keys para el carrito
+            key_litro = f"{nombre}_1L"
+            key_medio = f"{nombre}_0.5L"
 
+            # Obtener cantidad actual en carrito para prellenar number_input
+            cantidad_litro = st.session_state.carrito.get(key_litro, {}).get('cantidad', 0)
+            cantidad_medio = st.session_state.carrito.get(key_medio, {}).get('cantidad', 0)
+
+            litro = st.number_input(f"**Precio 1L:** ${info['litro']:,.0f}", min_value=0, max_value=10, value=cantidad_litro, key=key_litro + "_input")
+            medio = st.number_input(f"**Precio 1/2L:** ${info['medio']:,.0f}", min_value=0, max_value=10, value=cantidad_medio, key=key_medio + "_input")
+
+            # Actualizar carrito según inputs
             if litro > 0:
-                key = f"{nombre}_1L"
-                st.session_state.carrito[key] = {
+                st.session_state.carrito[key_litro] = {
                     "descripcion": f"1L de {nombre}",
                     "precio_unitario": info["litro"],
                     "cantidad": litro
                 }
+            else:
+                st.session_state.carrito.pop(key_litro, None)
 
             if medio > 0:
-                key = f"{nombre}_0.5L"
-                st.session_state.carrito[key] = {
+                st.session_state.carrito[key_medio] = {
                     "descripcion": f"1/2L de {nombre}",
                     "precio_unitario": info["medio"],
                     "cantidad": medio
                 }
+            else:
+                st.session_state.carrito.pop(key_medio, None)
 
             st.markdown('</div>', unsafe_allow_html=True)
 
     st.markdown("<hr style='border: 1px solid #fcad00;'>", unsafe_allow_html=True)
 
+    # Igual para promociones
     promo_cols = st.columns(2)
     for i, (promo_nombre, promo_info) in enumerate(promos.items()):
         with promo_cols[i % 2].container():
@@ -261,24 +273,23 @@ if not st.session_state.sidebar_interaccion:
             st.markdown(f"**Precio:** ${promo_info['precio']:,.0f}")
             st.markdown(f"**Contiene:** {promo_info['desc']}")
             st.markdown(f"**Ocasión recomendada:** {promo_info['ocasion']}")
-            cantidad = st.number_input(f"Cantidad de '{promo_nombre}'", min_value=0, max_value=10, key="promo" + promo_nombre)
+
+            key_promo = f"promo_{promo_nombre}"
+            cantidad_promo = st.session_state.carrito.get(key_promo, {}).get('cantidad', 0)
+            cantidad = st.number_input(f"Cantidad de '{promo_nombre}'", min_value=0, max_value=10, value=cantidad_promo, key=key_promo + "_input")
 
             if cantidad > 0:
-                key = f"promo_{promo_nombre}"
-                st.session_state.carrito[key] = {
+                st.session_state.carrito[key_promo] = {
                     "descripcion": promo_nombre,
                     "precio_unitario": promo_info["precio"],
                     "cantidad": cantidad
                 }
+            else:
+                st.session_state.carrito.pop(key_promo, None)
 
             st.markdown('</div>', unsafe_allow_html=True)
 
     st.markdown("<hr style='border: 1px solid #fcad00;'>", unsafe_allow_html=True)
-
-st.markdown(
-    "<hr style='border: 1px solid #fcad00;'>",
-    unsafe_allow_html=True
-)
 
 # Calcular total
 # Inicializar session_state para el carrito si no existe
