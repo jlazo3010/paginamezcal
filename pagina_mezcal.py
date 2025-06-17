@@ -33,27 +33,10 @@ st.markdown("""
     text-align: left;
 }
 
-/* Resalta el botón de abrir el sidebar */
-button[kind="header"] {
-    background-color: #004d01 !important;
-    color: white !important;
-    border: 2px solid black !important;
-    font-weight: bold !important;
-    animation: pulse 3s infinite;
-    border-radius: 6px !important;
-}
-
-/* Animación para llamar la atención */
-@keyframes pulse {
-    0% { box-shadow: 0 0 0 0 rgba(252, 173, 0, 0.7); }
-    70% { box-shadow: 0 0 0 10px rgba(252, 173, 0, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(252, 173, 0, 0); }
-}
-
 /* Aviso fijo en pantalla para dirigir al sidebar */
 .finaliza-sidebar {
     position: fixed;
-    top: 20%;
+    top: 40%;
     left: 5px;
     background-color: #fcad00;
     color: black;
