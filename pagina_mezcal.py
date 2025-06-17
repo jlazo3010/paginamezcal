@@ -293,38 +293,36 @@ if 'carrito' not in st.session_state:
 
 # Crear un diccionario temporal con los productos actuales del formulario
 productos_formulario = {}
-for desc, precio_total in pedido:
-    # Parse del producto según su formato
-    cantidad = 1
-    desc_clean = desc
-    key = ""
-    precio_unit = precio_total
 
+for desc, precio_total in pedido:
     if " x " in desc and "de" in desc:
         # Ejemplo: "2 x 1/2L de Espadín"
         cantidad = int(desc.split(" x ")[0])
         resto = desc.split(" x ")[1]
-        if "1/2L de" in resto:
-            nombre = resto.replace("1/2L de ", "").strip()
+        if "1/2L de " in resto:
+            nombre = resto.replace("1/2L de ", "")
             key = f"medio_{nombre}"
             desc_clean = f"1/2L de {nombre}"
-        elif "1L de" in resto:
-            nombre = resto.replace("1L de ", "").strip()
+        elif "1L de " in resto:
+            nombre = resto.replace("1L de ", "")
             key = f"litro_{nombre}"
             desc_clean = f"1L de {nombre}"
+        else:
+            nombre = resto.strip()
+            key = f"otro_{nombre}"
+            desc_clean = nombre
         precio_unit = precio_total // cantidad
 
-    elif "L de" in desc:
-        # Ejemplo: "2L de Espadín" → cantidad: 2, nombre: Espadín
-        cantidad_str, nombre = desc.split("L de")
-        cantidad = int(cantidad_str.strip())
-        nombre = nombre.strip()
+    elif "L de " in desc:
+        # Ejemplo: "3L de Espadín"
+        cantidad = int(desc.split("L de")[0])
+        nombre = desc.split("L de")[1].strip()
         key = f"litro_{nombre}"
         desc_clean = f"1L de {nombre}"
         precio_unit = precio_total // cantidad
 
     elif " x " in desc:
-        # Ejemplo: "2 x Trilogía Silvestre"
+        # Ejemplo: "2 x Dúo de la Casa"
         cantidad = int(desc.split(" x ")[0])
         nombre = desc.split(" x ")[1].strip()
         key = f"promo_{nombre.replace(' ', '_')}"
@@ -332,11 +330,11 @@ for desc, precio_total in pedido:
         precio_unit = precio_total // cantidad
 
     else:
-        # Caso por defecto (por si acaso)
+        # Caso por defecto
         cantidad = 1
-        nombre = desc
-        key = f"promo_{desc.replace(' ', '_')}"
-        desc_clean = desc
+        nombre = desc.strip()
+        key = f"otro_{nombre.replace(' ', '_')}"
+        desc_clean = nombre
         precio_unit = precio_total
 
     if key in productos_formulario:
@@ -348,14 +346,17 @@ for desc, precio_total in pedido:
             'cantidad': cantidad
         }
 
-# Botón para actualizar el carrito manualmente
-if st.button("🛒 Agregar al carrito"):
+# Actualizar el carrito con lo del formulario
+if productos_formulario:
     for key, producto in productos_formulario.items():
         if producto['cantidad'] > 0:
             st.session_state.carrito[key] = producto
 
-    # Remover del carrito productos que ya no están en el formulario
-    keys_a_remover = [key for key in st.session_state.carrito if key not in productos_formulario]
+    # Remover productos que ya no están en el formulario
+    keys_a_remover = []
+    for key in list(st.session_state.carrito.keys()):
+        if key not in productos_formulario:
+            keys_a_remover.append(key)
     for key in keys_a_remover:
         del st.session_state.carrito[key]
 
