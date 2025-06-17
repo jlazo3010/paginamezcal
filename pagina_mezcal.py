@@ -167,7 +167,7 @@ for i, (nombre, info) in enumerate(mezcales.items()):
         # Mostrar imagen en un expander
         with st.expander("📸 Ver imagen del mezcal"):
             img_path = f"{i+1}.png"
-            st.image(img_path, use_column_width=True)
+            st.image(img_path, use_container_width=True)
         
         litro = st.number_input(f"**Precio 1L:** ${info['litro']:,.0f}", min_value=0, max_value=10, key=nombre + "l")
         medio = st.number_input(f"**Precio 1/2L:** ${info['medio']:,.0f}", min_value=0, max_value=10, key=nombre + "m")
