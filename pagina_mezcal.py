@@ -143,20 +143,6 @@ mezcales = {
 
 st.markdown("### 🛒 Elige tus mezcales")
 
-with open("Cocteleria.pdf", "rb") as f:
-    base64_pdf = base64.b64encode(f.read()).decode('utf-8')
-
-pdf_display = f"""
-    <div style='text-align: center; margin-top: 20px;'>
-        <a href="data:application/pdf;base64,{base64_pdf}" download="cocteles.pdf">
-            <button style='background-color: #fcad00; color: black; border: none; padding: 10px 20px; font-size: 16px; border-radius: 8px; cursor: pointer;'>
-                🍸 Descargar Cocteles
-            </button>
-        </a>
-    </div>
-"""
-st.markdown(pdf_display, unsafe_allow_html=True)
-
 st.markdown(
     "<hr style='border: 1px solid #fcad00;'>",
     unsafe_allow_html=True
