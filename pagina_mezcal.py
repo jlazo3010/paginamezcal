@@ -137,6 +137,7 @@ h2, h3 {
 [data-testid="stExpander"] > div:first-child {
     background-color: #ffbc00 !important;
     color: black !important;
+    font-size: 3rem;
     font-weight: bold;
     transition: background-color 0.3s ease;
 }
