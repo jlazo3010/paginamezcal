@@ -292,49 +292,29 @@ with st.sidebar:
         "<h2 class='titulo-principal'>🧾 Resumen del pedido</h2>",
         unsafe_allow_html=True
     )
+    
 
-    total = 0
-    mensaje = "Hola! Quiero hacer el siguiente pedido de mezcal Novena Entrada:\n"
-    has_items = False
-
-    # Mostrar resumen solo de lo que ya se seleccionó
-    for nombre in mezcales:
-        l_key = nombre + "l"
-        m_key = nombre + "m"
-        l_val = st.session_state.get(l_key, 0)
-        m_val = st.session_state.get(m_key, 0)
-
-        if l_val > 0:
-            has_items = True
-            subtotal = mezcales[nombre]["litro"] * l_val
-            st.markdown(f"- {l_val}L de {nombre}: ${subtotal:,.0f}")
-            total += subtotal
-            mensaje += f"- {l_val}L de {nombre} (${subtotal})\n"
-
-        if m_val > 0:
-            has_items = True
-            subtotal = mezcales[nombre]["medio"] * m_val
-            st.markdown(f"- {m_val} x 1/2L de {nombre}: ${subtotal:,.0f}")
-            total += subtotal
-            mensaje += f"- {m_val} x 1/2L de {nombre} (${subtotal})\n"
-
-    for promo_nombre in promos:
-        promo_key = "promo" + promo_nombre
-        p_val = st.session_state.get(promo_key, 0)
-
-        if p_val > 0:
-            has_items = True
-            subtotal = promos[promo_nombre]["precio"] * p_val
-            st.markdown(f"- {p_val} x {promo_nombre}: ${subtotal:,.0f}")
-            total += subtotal
-            mensaje += f"- {p_val} x {promo_nombre} (${subtotal})\n"
-
-    if has_items and total > 0:
-        mensaje += f"\nTotal: ${total:,.0f}"
-        st.markdown("---")
+    if pedido:
+        total = 0
+        for desc, precio in pedido:
+            st.write(f"- {desc}: ${precio:,.0f}")
+            total += precio
         st.markdown(f"**Total: ${total:,.0f}**")
-        numero_wa = "5573876729"
+
+        # Mensaje para WhatsApp
+        mensaje = "Hola! Quiero hacer el siguiente pedido de mezcal Novena Entrada:\n"
+        for desc, precio in pedido:
+            mensaje += f"- {desc} (${precio})\n"
+        mensaje += f"\nTotal: ${total:,.0f}"
+
+        # Enlace de WhatsApp
+        numero_wa = "5573876729"  # Sustituye por tu número
         url_wa = f"https://wa.me/{numero_wa}?text={urllib.parse.quote(mensaje)}"
+
+        st.markdown(
+            "<hr style='border: 1px solid #fcad00;'>",
+            unsafe_allow_html=True
+        )
         st.markdown(f"[✅ Finaliza tu pedido por WhatsApp]({url_wa})", unsafe_allow_html=True)
         st.markdown(
             f"""
@@ -344,5 +324,6 @@ with st.sidebar:
             """,
             unsafe_allow_html=True
         )
+
     else:
         st.info("Agrega productos para ver el resumen aquí 👈")
