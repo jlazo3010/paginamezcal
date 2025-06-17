@@ -357,10 +357,14 @@ with st.sidebar:
         total = 0
         st.markdown("### Edita tu pedido aquí:")
         
-        # Crear lista de productos para evitar problemas de iteración
-        productos_items = list(st.session_state.carrito.items())
+        # Crear una copia del carrito para evitar modificaciones durante la iteración
+        carrito_copy = dict(st.session_state.carrito)
         
-        for key, producto in productos_items:
+        for key, producto in carrito_copy.items():
+            # Verificar que el producto aún existe en el carrito actual
+            if key not in st.session_state.carrito:
+                continue
+                
             desc = producto['descripcion']
             precio_unitario = producto['precio_unitario']
             cantidad = producto['cantidad']
@@ -373,36 +377,43 @@ with st.sidebar:
                 with col1:
                     # Botón disminuir
                     if st.button("➖", key=f"menos_{key}"):
-                        if st.session_state.carrito[key]['cantidad'] > 1:
-                            st.session_state.carrito[key]['cantidad'] -= 1
-                        else:
-                            del st.session_state.carrito[key]
+                        if key in st.session_state.carrito:  # Verificar que existe
+                            if st.session_state.carrito[key]['cantidad'] > 1:
+                                st.session_state.carrito[key]['cantidad'] -= 1
+                            else:
+                                del st.session_state.carrito[key]
                         st.rerun()
                 
                 with col2:
-                    # Mostrar cantidad
+                    # Mostrar cantidad actual del carrito
+                    cantidad_actual = st.session_state.carrito.get(key, {}).get('cantidad', 0)
                     st.markdown(
                         f"<div style='text-align: center; padding: 8px; background-color: #fcad00; "
-                        f"border-radius: 5px; color: black; font-weight: bold;'>{cantidad}</div>", 
+                        f"border-radius: 5px; color: black; font-weight: bold;'>{cantidad_actual}</div>", 
                         unsafe_allow_html=True
                     )
                 
                 with col3:
                     # Botón aumentar
                     if st.button("➕", key=f"mas_{key}"):
-                        st.session_state.carrito[key]['cantidad'] += 1
+                        if key in st.session_state.carrito:  # Verificar que existe
+                            st.session_state.carrito[key]['cantidad'] += 1
                         st.rerun()
                 
                 with col4:
                     # Botón eliminar
                     if st.button("🗑️", key=f"del_{key}"):
-                        del st.session_state.carrito[key]
+                        if key in st.session_state.carrito:  # Verificar que existe
+                            del st.session_state.carrito[key]
                         st.rerun()
                 
-                # Calcular subtotal
-                precio_linea = precio_unitario * cantidad
-                total += precio_linea
-                st.write(f"💰 ${precio_linea:,.0f}")
+                # Calcular subtotal con la cantidad actual del carrito
+                if key in st.session_state.carrito:
+                    cantidad_actual = st.session_state.carrito[key]['cantidad']
+                    precio_linea = precio_unitario * cantidad_actual
+                    total += precio_linea
+                    st.write(f"💰 ${precio_linea:,.0f}")
+                
                 st.markdown("---")
         
         # Total
