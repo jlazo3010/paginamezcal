@@ -295,25 +295,44 @@ if 'carrito' not in st.session_state:
 productos_formulario = {}
 for desc, precio_total in pedido:
     # Parse del producto según su formato
+    cantidad = 1
+    desc_clean = desc
+    key = ""
+    precio_unit = precio_total
+
     if " x " in desc and "de" in desc:
+        # Ejemplo: "2 x 1/2L de Espadín"
         cantidad = int(desc.split(" x ")[0])
         resto = desc.split(" x ")[1]
         if "1/2L de" in resto:
-            nombre = resto.replace("1/2L de ", "")
+            nombre = resto.replace("1/2L de ", "").strip()
             key = f"medio_{nombre}"
             desc_clean = f"1/2L de {nombre}"
         elif "1L de" in resto:
-            nombre = resto.replace("1L de ", "")
+            nombre = resto.replace("1L de ", "").strip()
             key = f"litro_{nombre}"
             desc_clean = f"1L de {nombre}"
         precio_unit = precio_total // cantidad
+
     elif "L de" in desc:
-        cantidad = int(desc.split("L de")[0])
-        nombre = desc.split("L de")[1].strip()
+        # Ejemplo: "2L de Espadín" → cantidad: 2, nombre: Espadín
+        cantidad_str, nombre = desc.split("L de")
+        cantidad = int(cantidad_str.strip())
+        nombre = nombre.strip()
         key = f"litro_{nombre}"
         desc_clean = f"1L de {nombre}"
         precio_unit = precio_total // cantidad
+
+    elif " x " in desc:
+        # Ejemplo: "2 x Trilogía Silvestre"
+        cantidad = int(desc.split(" x ")[0])
+        nombre = desc.split(" x ")[1].strip()
+        key = f"promo_{nombre.replace(' ', '_')}"
+        desc_clean = nombre
+        precio_unit = precio_total // cantidad
+
     else:
+        # Caso por defecto (por si acaso)
         cantidad = 1
         nombre = desc
         key = f"promo_{desc.replace(' ', '_')}"
