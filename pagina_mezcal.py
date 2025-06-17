@@ -15,7 +15,7 @@ st.set_page_config(page_title="Mezcal Novena Entrada ⚾🔥", page_icon="🌿",
 
 st.markdown("""
 <div class="finaliza-sidebar">
-    👈 Finaliza tu pedido aquí
+    Finaliza tu pedido aquí☝️ 
 </div>
 """, unsafe_allow_html=True)
 
@@ -310,12 +310,11 @@ with st.sidebar:
         unsafe_allow_html=True
     )
 
-    has_items = False
     total = 0
     mensaje = "Hola! Quiero hacer el siguiente pedido de mezcal Novena Entrada:\n"
+    has_items = False
 
-    # Procesar mezcales
-    for i, nombre in enumerate(mezcales.keys()):
+    for nombre in mezcales.keys():
         l_key = nombre + "l"
         m_key = nombre + "m"
 
@@ -327,52 +326,37 @@ with st.sidebar:
             st.markdown(f"**{nombre}**")
 
         if l_val > 0:
-            st.write(f"1L x {l_val} = ${mezcales[nombre]['litro'] * l_val:,.0f}")
-            col1, col2, col3 = st.columns([1, 1, 1])
-            with col1:
-                if st.button("➖", key=f"menos_{l_key}"):
-                    st.session_state[l_key] = max(0, l_val - 1)
-            with col2:
-                st.write(str(l_val))
-            with col3:
-                if st.button("➕", key=f"mas_{l_key}"):
-                    st.session_state[l_key] = l_val + 1
-            total += mezcales[nombre]["litro"] * l_val
-            mensaje += f"- {l_val}L de {nombre} (${mezcales[nombre]['litro'] * l_val})\n"
+            st.session_state[l_key] = st.number_input(
+                f"1L de {nombre}", min_value=0, max_value=10, step=1, key=f"sidebar_{l_key}"
+            )
+            cantidad = st.session_state[l_key]
+            if cantidad > 0:
+                total += mezcales[nombre]["litro"] * cantidad
+                mensaje += f"- {cantidad}L de {nombre} (${mezcales[nombre]['litro'] * cantidad})\n"
 
         if m_val > 0:
-            st.write(f"1/2L x {m_val} = ${mezcales[nombre]['medio'] * m_val:,.0f}")
-            col1, col2, col3 = st.columns([1, 1, 1])
-            with col1:
-                if st.button("➖", key=f"menos_{m_key}"):
-                    st.session_state[m_key] = max(0, m_val - 1)
-            with col2:
-                st.write(str(m_val))
-            with col3:
-                if st.button("➕", key=f"mas_{m_key}"):
-                    st.session_state[m_key] = m_val + 1
-            total += mezcales[nombre]["medio"] * m_val
-            mensaje += f"- {m_val} x 1/2L de {nombre} (${mezcales[nombre]['medio'] * m_val})\n"
+            st.session_state[m_key] = st.number_input(
+                f"1/2L de {nombre}", min_value=0, max_value=10, step=1, key=f"sidebar_{m_key}"
+            )
+            cantidad = st.session_state[m_key]
+            if cantidad > 0:
+                total += mezcales[nombre]["medio"] * cantidad
+                mensaje += f"- {cantidad} x 1/2L de {nombre} (${mezcales[nombre]['medio'] * cantidad})\n"
 
-    # Procesar promociones
     for promo_nombre, promo_info in promos.items():
         promo_key = "promo" + promo_nombre
-        p_val = st.session_state.get(promo_key, 0)
-        if p_val > 0:
+        val = st.session_state.get(promo_key, 0)
+
+        if val > 0:
             has_items = True
             st.markdown(f"**{promo_nombre}**")
-            st.write(f"{p_val} x ${promo_info['precio']} = ${promo_info['precio'] * p_val:,.0f}")
-            col1, col2, col3 = st.columns([1, 1, 1])
-            with col1:
-                if st.button("➖", key=f"menos_{promo_key}"):
-                    st.session_state[promo_key] = max(0, p_val - 1)
-            with col2:
-                st.write(str(p_val))
-            with col3:
-                if st.button("➕", key=f"mas_{promo_key}"):
-                    st.session_state[promo_key] = p_val + 1
-            total += promo_info["precio"] * p_val
-            mensaje += f"- {p_val} x {promo_nombre} (${promo_info['precio'] * p_val})\n"
+            st.session_state[promo_key] = st.number_input(
+                f"{promo_nombre}", min_value=0, max_value=10, step=1, key=f"sidebar_{promo_key}"
+            )
+            cantidad = st.session_state[promo_key]
+            if cantidad > 0:
+                total += promo_info["precio"] * cantidad
+                mensaje += f"- {cantidad} x {promo_nombre} (${promo_info['precio'] * cantidad})\n"
 
     if has_items:
         mensaje += f"\nTotal: ${total:,.0f}"
