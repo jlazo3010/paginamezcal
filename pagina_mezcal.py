@@ -165,7 +165,7 @@ for i, (nombre, info) in enumerate(mezcales.items()):
         st.markdown(f"**Maridaje recomendado:** {info['maridaje']}")
         
         # Mostrar imagen en un expander
-        with st.expander("📸 Ver imagen del mezcal"):
+        with st.expander("Recomendación de coctail 🥃🔥"):
             img_path = f"{i+1}.png"
             st.image(img_path, use_container_width=True)
         
