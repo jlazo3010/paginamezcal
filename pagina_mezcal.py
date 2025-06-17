@@ -337,7 +337,7 @@ for desc, precio_total in pedido:
         }
 
 # Actualizar carrito desde el formulario (siempre que no sea una acción específica del sidebar)
-if not st.session_state.sidebar_clicked:
+if not st.session_state.sidebar_clicked and productos_formulario:
     # Actualizar carrito solo con productos que tienen cantidad > 0 en el formulario
     for key, producto in productos_formulario.items():
         if producto['cantidad'] > 0:
