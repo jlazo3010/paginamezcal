@@ -291,16 +291,11 @@ st.markdown(
 if 'carrito' not in st.session_state:
     st.session_state.carrito = {}
 
-# Inicializar flag para controlar actualizaciones
-if 'sidebar_clicked' not in st.session_state:
-    st.session_state.sidebar_clicked = False
-
 # Crear un diccionario temporal con los productos actuales del formulario
 productos_formulario = {}
 for desc, precio_total in pedido:
     # Parse del producto según su formato
     if " x " in desc and "de" in desc:
-        # Formato: "2 x 1/2L de Espadín"
         cantidad = int(desc.split(" x ")[0])
         resto = desc.split(" x ")[1]
         if "1/2L de" in resto:
@@ -313,20 +308,18 @@ for desc, precio_total in pedido:
             desc_clean = f"1L de {nombre}"
         precio_unit = precio_total // cantidad
     elif "L de" in desc:
-        # Formato: "3L de Espadín"
         cantidad = int(desc.split("L de")[0])
         nombre = desc.split("L de")[1].strip()
         key = f"litro_{nombre}"
         desc_clean = f"1L de {nombre}"
         precio_unit = precio_total // cantidad
     else:
-        # Promociones
         cantidad = 1
         nombre = desc
         key = f"promo_{desc.replace(' ', '_')}"
         desc_clean = desc
         precio_unit = precio_total
-    
+
     if key in productos_formulario:
         productos_formulario[key]['cantidad'] += cantidad
     else:
@@ -336,23 +329,16 @@ for desc, precio_total in pedido:
             'cantidad': cantidad
         }
 
-# Actualizar carrito desde el formulario (siempre que no sea una acción específica del sidebar)
-if not st.session_state.sidebar_clicked and productos_formulario:
-    # Actualizar carrito solo con productos que tienen cantidad > 0 en el formulario
+# Botón para actualizar el carrito manualmente
+if st.button("🛒 Agregar al carrito"):
     for key, producto in productos_formulario.items():
         if producto['cantidad'] > 0:
             st.session_state.carrito[key] = producto
 
     # Remover del carrito productos que ya no están en el formulario
-    keys_a_remover = []
-    for key in st.session_state.carrito.keys():
-        if key not in productos_formulario:
-            keys_a_remover.append(key)
+    keys_a_remover = [key for key in st.session_state.carrito if key not in productos_formulario]
     for key in keys_a_remover:
         del st.session_state.carrito[key]
-
-# Reset del flag después de procesar
-st.session_state.sidebar_clicked = False
 
 # SIDEBAR
 with st.sidebar:
@@ -360,72 +346,59 @@ with st.sidebar:
         "<h2 style='color: #fcad00; text-align: center;'>🧾 Resumen del pedido</h2>",
         unsafe_allow_html=True
     )
-    
+
     if st.session_state.carrito:
         total = 0
         st.markdown("### Edita tu pedido aquí:")
-        
-        # Lista de productos para mostrar
+
         productos_a_mostrar = list(st.session_state.carrito.items())
-        
+
         for key, producto in productos_a_mostrar:
             desc = producto['descripcion']
             precio_unitario = producto['precio_unitario']
             cantidad = producto['cantidad']
-            
+
             with st.container():
                 st.markdown(f"**{desc}**")
-                
+
                 col1, col2, col3, col4 = st.columns([1, 2, 1, 1])
-                
+
                 with col1:
-                    # Botón disminuir
                     if st.button("➖", key=f"menos_{key}"):
-                        st.session_state.sidebar_clicked = True
                         if st.session_state.carrito[key]['cantidad'] > 1:
                             st.session_state.carrito[key]['cantidad'] -= 1
                         else:
                             del st.session_state.carrito[key]
                         st.rerun()
-                
+
                 with col2:
-                    # Mostrar cantidad
                     st.markdown(
                         f"<div style='text-align: center; padding: 8px; background-color: #fcad00; "
-                        f"border-radius: 5px; color: black; font-weight: bold;'>{cantidad}</div>", 
+                        f"border-radius: 5px; color: black; font-weight: bold;'>{cantidad}</div>",
                         unsafe_allow_html=True
                     )
-                
+
                 with col3:
-                    # Botón aumentar
                     if st.button("➕", key=f"mas_{key}"):
-                        st.session_state.sidebar_clicked = True
                         st.session_state.carrito[key]['cantidad'] += 1
                         st.rerun()
-                
+
                 with col4:
-                    # Botón eliminar
                     if st.button("🗑️", key=f"del_{key}"):
-                        st.session_state.sidebar_clicked = True
                         del st.session_state.carrito[key]
                         st.rerun()
-                
-                # Calcular subtotal
+
                 precio_linea = precio_unitario * cantidad
                 total += precio_linea
                 st.write(f"💰 ${precio_linea:,.0f}")
                 st.markdown("---")
-        
-        # Total
+
         st.markdown(f"### **🔥 Total: ${total:,.0f}**")
-        
-        # Limpiar todo
+
         if st.button("🗑️ Vaciar carrito", type="secondary"):
-            st.session_state.sidebar_clicked = True
             st.session_state.carrito = {}
             st.rerun()
-        
-        # WhatsApp
+
         if st.session_state.carrito:
             mensaje = "¡Hola! Pedido de Mezcal Novena Entrada:\n\n"
             for key, producto in st.session_state.carrito.items():
@@ -434,12 +407,12 @@ with st.sidebar:
                 precio_linea = producto['precio_unitario'] * cantidad
                 mensaje += f"• {cantidad}x {desc} - ${precio_linea:,.0f}\n"
             mensaje += f"\n🔥 TOTAL: ${total:,.0f}\n¡Gracias!"
-            
+
             numero_wa = "5573876729"
             url_wa = f"https://wa.me/{numero_wa}?text={urllib.parse.quote(mensaje)}"
-            
+
             st.markdown("<hr style='border: 2px solid #fcad00;'>", unsafe_allow_html=True)
-            
+
             st.markdown(f"""
             <div style='text-align: center; margin: 20px 0;'>
                 <a href='{url_wa}' target='_blank' style='
@@ -453,13 +426,13 @@ with st.sidebar:
                 '>✅ Finalizar por WhatsApp</a>
             </div>
             """, unsafe_allow_html=True)
-            
+
             st.markdown(f"""
             <div style='text-align: center;'>
                 <img src='data:image/jpeg;base64,{img_data}' width='200' style='border-radius: 10px;'>
             </div>
             """, unsafe_allow_html=True)
-    
+
     else:
         st.info("🌿 Agrega productos para ver el resumen")
         st.markdown(f"""
