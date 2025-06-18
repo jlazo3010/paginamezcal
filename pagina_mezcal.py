@@ -69,7 +69,7 @@ html, body, .main, .block-container {
 /* Aviso fijo en pantalla para dirigir al sidebar */
 .finaliza-sidebar {
     position: fixed;
-    top: 45%;
+    top: 40%;
     left: 5px;
     background-color: #004d01;
     color: white;
