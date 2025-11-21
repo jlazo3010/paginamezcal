@@ -291,19 +291,19 @@ promos = {
         "ocasion": "Pensado para momentos intensos, comidas potentes o celebrar un logro."
     },
     "Trilogía Silvestre": {
-        "precio": 850,
+        "precio": 950,
         "Tipo": "Para explorar lo mejor del agave silvestre.",
         "desc": "3 medios litros: Cuishe, Tobalá y Tepextate.",
         "ocasion": "Ideal para catas o para sorprender a alguien especial."
     },
     "Fiesta de Sabores": {
-        "precio": 1000,
+        "precio": 1100,
         "Tipo": "Un viaje por sabores únicos.",
         "desc": "1/2L de Espadín + 1/2L de Tobalá + 1/2L de Cuishe + 1/2L de Tepextate.",
         "ocasion": "Una noche larga, con música, mezcal y buena compañía."
     },
     "Ruta del Agave": {
-        "precio": 700,
+        "precio": 900,
         "Tipo": "Del campo a la copa.",
         "desc": "1L de Guajolote y frutos amarillos + 1/2L de Abocado con gusano de maguey.",
         "ocasion": "Reunión informal o precopeo con personalidad."
